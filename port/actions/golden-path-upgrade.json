@@ -1,0 +1,19 @@
+{
+  "identifier": "golden-path-upgrade",
+  "title": "Golden Path Template Upgrade",
+  "description": "Raise a PR to upgrade a service to the latest golden path template version",
+  "trigger": "DAY-2",
+  "invocationMethod": {
+    "type": "GITHUB",
+    "org": "<YOUR_GITHUB_ORG>",
+    "repo": "self-healing-internal-developer-platform",
+    "workflow": "golden-path-upgrade.yml"
+  },
+  "userInputs": {
+    "properties": {
+      "service_identifier": { "type": "string", "title": "Service Identifier" },
+      "current_version": { "type": "string", "title": "Current Version" },
+      "target_version": { "type": "string", "title": "Target Version" }
+    }
+  }
+}

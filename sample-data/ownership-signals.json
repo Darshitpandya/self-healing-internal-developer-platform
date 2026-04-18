@@ -1,0 +1,20 @@
+{
+  "notifications-svc": {
+    "codeowners": null,
+    "github_team_permissions": null,
+    "pagerduty_oncall": null,
+    "pr_approvers_last_6m": { "team-payments": 4, "team-commerce": 2 }
+  },
+  "analytics-svc": {
+    "codeowners": "team-alpha",
+    "github_team_permissions": "team-alpha",
+    "pagerduty_oncall": "team-data",
+    "pr_approvers_last_6m": { "team-data": 8 }
+  },
+  "users-svc": {
+    "codeowners": "team-beta",
+    "github_team_permissions": "team-beta",
+    "pagerduty_oncall": "team-identity",
+    "pr_approvers_last_6m": { "team-identity": 6, "team-beta": 1 }
+  }
+}

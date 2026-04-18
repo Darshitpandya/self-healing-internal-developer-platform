@@ -1,0 +1,40 @@
+{
+  "identifier": "ownership-health",
+  "title": "Ownership Health",
+  "blueprint": "service",
+  "rules": [
+    {
+      "identifier": "has-owner",
+      "title": "Has Team Owner",
+      "level": "Gold",
+      "query": {
+        "combinator": "and",
+        "conditions": [
+          { "property": "team_owner", "operator": "isNotEmpty" }
+        ]
+      }
+    },
+    {
+      "identifier": "owner-not-dissolved",
+      "title": "Owner Team Not Dissolved",
+      "level": "Silver",
+      "query": {
+        "combinator": "and",
+        "conditions": [
+          { "property": "ownership_source", "operator": "!=", "value": "dissolved" }
+        ]
+      }
+    },
+    {
+      "identifier": "high-confidence",
+      "title": "High Confidence Ownership",
+      "level": "Gold",
+      "query": {
+        "combinator": "and",
+        "conditions": [
+          { "property": "ownership_confidence", "operator": "=", "value": "high" }
+        ]
+      }
+    }
+  ]
+}

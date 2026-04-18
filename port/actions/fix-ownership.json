@@ -1,0 +1,17 @@
+{
+  "identifier": "fix-ownership",
+  "title": "Fix Orphan Ownership",
+  "description": "Resolve orphan service ownership by cross-referencing CODEOWNERS, GitHub Teams, PagerDuty, and PR approvers",
+  "trigger": "DAY-2",
+  "invocationMethod": {
+    "type": "GITHUB",
+    "org": "<YOUR_GITHUB_ORG>",
+    "repo": "self-healing-internal-developer-platform",
+    "workflow": "fix-ownership.yml"
+  },
+  "userInputs": {
+    "properties": {
+      "service_identifier": { "type": "string", "title": "Service Identifier" }
+    }
+  }
+}

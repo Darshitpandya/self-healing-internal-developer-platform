@@ -1,0 +1,20 @@
+{
+  "identifier": "service",
+  "title": "Service",
+  "icon": "Microservice",
+  "schema": {
+    "properties": {
+      "team_owner": { "type": "string", "title": "Team Owner", "description": "Owning team name or null if unassigned" },
+      "ownership_source": { "type": "string", "title": "Ownership Source", "enum": ["codeowners", "github_team", "pagerduty", "unassigned", "dissolved"], "description": "How ownership was determined" },
+      "ownership_confidence": { "type": "string", "title": "Ownership Confidence", "enum": ["high", "medium", "low", "conflict"] },
+      "template_version": { "type": "string", "title": "Template Version", "description": "Current golden path template version" },
+      "latest_template_version": { "type": "string", "title": "Latest Template Version" },
+      "template_versions_behind": { "type": "number", "title": "Versions Behind" },
+      "template_missed_security_patch": { "type": "boolean", "title": "Missed Security Patch" },
+      "secret_health_status": { "type": "string", "title": "Secret Health", "enum": ["healthy", "expiring_soon", "no_rotation", "expired"] },
+      "secret_days_to_expiry": { "type": "number", "title": "Days to Secret Expiry" },
+      "service_tier": { "type": "string", "title": "Service Tier", "enum": ["critical", "standard"] }
+    },
+    "required": ["service_tier"]
+  }
+}

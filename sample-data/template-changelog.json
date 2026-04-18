@@ -1,0 +1,5 @@
+{
+  "v1.3": { "type": "security", "summary": "Dependency security patch — critical CVE in logging library" },
+  "v1.4": { "type": "improvement", "summary": "CI pipeline update — 40% faster builds" },
+  "v1.5": { "type": "feature", "summary": "OTel auto-instrumentation — observability out of the box" }
+}

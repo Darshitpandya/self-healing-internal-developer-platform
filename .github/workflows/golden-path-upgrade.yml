@@ -1,0 +1,90 @@
+name: "Self-Heal: Golden Path Upgrade"
+
+on:
+  repository_dispatch:
+    types: [port-golden-path-upgrade]
+  workflow_dispatch:
+    inputs:
+      service_identifier:
+        description: "Service identifier"
+        required: true
+      current_version:
+        description: "Current template version (e.g., v1.2)"
+        required: true
+      target_version:
+        description: "Target template version (e.g., v1.5)"
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install OPA
+        run: |
+          curl -L -o opa https://openpolicyagent.org/downloads/v1.4.2/opa_linux_amd64_static
+          chmod +x opa
+          sudo mv opa /usr/local/bin/
+
+      - name: Determine inputs
+        id: inputs
+        run: |
+          SVC="${{ github.event.client_payload.service_identifier || github.event.inputs.service_identifier }}"
+          CURRENT="${{ github.event.client_payload.current_version || github.event.inputs.current_version }}"
+          TARGET="${{ github.event.client_payload.target_version || github.event.inputs.target_version }}"
+          echo "service=$SVC" >> $GITHUB_OUTPUT
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "target=$TARGET" >> $GITHUB_OUTPUT
+
+          # Calculate versions behind
+          CURRENT_NUM=$(echo "$CURRENT" | sed 's/v1\.//')
+          TARGET_NUM=$(echo "$TARGET" | sed 's/v1\.//')
+          BEHIND=$((TARGET_NUM - CURRENT_NUM))
+          echo "behind=$BEHIND" >> $GITHUB_OUTPUT
+
+      - name: Load template changelog
+        id: changelog
+        run: |
+          CHANGELOG=$(cat sample-data/template-changelog.json)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" | jq -r 'to_entries[] | "- **\(.key)** (\(.value.type)): \(.value.summary)"' >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: OPA policy check
+        id: opa
+        run: |
+          INPUT=$(jq -n \
+            --arg action "golden_path_upgrade" \
+            --arg tier "standard" \
+            --argjson behind ${{ steps.inputs.outputs.behind }} \
+            '{action: $action, service_tier: $tier, versions_behind: $behind}')
+          RESULT=$(echo "$INPUT" | opa eval -d policies/selfheal.rego -i /dev/stdin "data.selfheal.allow" --format raw)
+          echo "allowed=$RESULT" >> $GITHUB_OUTPUT
+          echo "OPA decision: $RESULT"
+
+      - name: Create upgrade PR
+        if: steps.opa.outputs.allowed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: "self-heal/golden-path-${{ steps.inputs.outputs.service }}"
+          title: "⬆️ Golden path: ${{ steps.inputs.outputs.current }} → ${{ steps.inputs.outputs.target }} (${{ steps.inputs.outputs.service }})"
+          body: |
+            ## Self-Healing: Golden Path Template Upgrade
+
+            **Service:** ${{ steps.inputs.outputs.service }}
+            **Current version:** ${{ steps.inputs.outputs.current }}
+            **Target version:** ${{ steps.inputs.outputs.target }}
+            **Versions behind:** ${{ steps.inputs.outputs.behind }}
+
+            ### What's included in this upgrade
+            ${{ steps.changelog.outputs.changelog }}
+
+            ---
+            *Auto-raised by the self-healing platform. Review the changes and merge when ready.*
+          commit-message: "chore: upgrade golden path ${{ steps.inputs.outputs.current }} → ${{ steps.inputs.outputs.target }}"

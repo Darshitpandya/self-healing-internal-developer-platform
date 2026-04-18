@@ -1,0 +1,105 @@
+name: "Self-Heal: Fix Orphan Ownership"
+
+on:
+  repository_dispatch:
+    types: [port-fix-ownership]
+  workflow_dispatch:
+    inputs:
+      service_identifier:
+        description: "Service identifier (e.g., notifications-svc)"
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  fix-ownership:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install OPA
+        run: |
+          curl -L -o opa https://openpolicyagent.org/downloads/v1.4.2/opa_linux_amd64_static
+          chmod +x opa
+          sudo mv opa /usr/local/bin/
+
+      - name: Determine service
+        id: svc
+        run: |
+          SVC="${{ github.event.client_payload.service_identifier || github.event.inputs.service_identifier }}"
+          echo "service=$SVC" >> $GITHUB_OUTPUT
+
+      - name: Load ownership signals
+        id: signals
+        run: |
+          SIGNALS=$(cat sample-data/ownership-signals.json | jq -r --arg svc "${{ steps.svc.outputs.service }}" '.[$svc] // empty')
+          if [ -z "$SIGNALS" ]; then
+            echo "No ownership signals found for ${{ steps.svc.outputs.service }}"
+            exit 0
+          fi
+          echo "signals=$SIGNALS" >> $GITHUB_OUTPUT
+
+          # Determine best candidate team
+          PAGERDUTY=$(echo "$SIGNALS" | jq -r '.pagerduty_oncall // empty')
+          if [ -n "$PAGERDUTY" ]; then
+            echo "candidate=$PAGERDUTY" >> $GITHUB_OUTPUT
+            echo "source=pagerduty_oncall" >> $GITHUB_OUTPUT
+            echo "confidence=high" >> $GITHUB_OUTPUT
+          else
+            BEST_TEAM=$(echo "$SIGNALS" | jq -r '.pr_approvers_last_6m | to_entries | sort_by(-.value) | .[0].key // empty')
+            echo "candidate=$BEST_TEAM" >> $GITHUB_OUTPUT
+            echo "source=pr_approvers" >> $GITHUB_OUTPUT
+            echo "confidence=medium" >> $GITHUB_OUTPUT
+          fi
+
+      - name: OPA policy check
+        id: opa
+        run: |
+          INPUT=$(jq -n \
+            --arg action "fix_ownership" \
+            --arg confidence "${{ steps.signals.outputs.confidence }}" \
+            --arg tier "standard" \
+            '{action: $action, ownership_confidence: $confidence, service_tier: $tier}')
+          RESULT=$(echo "$INPUT" | opa eval -d policies/selfheal.rego -i /dev/stdin "data.selfheal.allow" --format raw)
+          echo "allowed=$RESULT" >> $GITHUB_OUTPUT
+          echo "OPA decision: $RESULT"
+
+      - name: Create PR (high confidence — auto-fix)
+        if: steps.opa.outputs.allowed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: "self-heal/ownership-${{ steps.svc.outputs.service }}"
+          title: "🔄 Ownership update: ${{ steps.svc.outputs.service }} → ${{ steps.signals.outputs.candidate }}"
+          body: |
+            ## Self-Healing: Ownership Resolution
+
+            **Service:** ${{ steps.svc.outputs.service }}
+            **Proposed owner:** ${{ steps.signals.outputs.candidate }}
+            **Source:** ${{ steps.signals.outputs.source }}
+            **Confidence:** ${{ steps.signals.outputs.confidence }}
+
+            ---
+            *Auto-raised by the self-healing platform. Human approval required before merge.*
+          commit-message: "chore: update ownership for ${{ steps.svc.outputs.service }}"
+
+      - name: Create Issue (low confidence — escalate)
+        if: steps.opa.outputs.allowed != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `❓ Who owns ${process.env.SVC}?`,
+              body: `## Ownership Unknown\n\n**Service:** ${process.env.SVC}\n**Best candidate:** ${process.env.CANDIDATE} (source: ${process.env.SOURCE})\n**Confidence:** ${process.env.CONFIDENCE} — too low for auto-fix.\n\nPlease confirm the correct owning team.\n\n---\n*Created by the self-healing platform.*`,
+              labels: ['ownership', 'needs-human']
+            })
+        env:
+          SVC: ${{ steps.svc.outputs.service }}
+          CANDIDATE: ${{ steps.signals.outputs.candidate }}
+          SOURCE: ${{ steps.signals.outputs.source }}
+          CONFIDENCE: ${{ steps.signals.outputs.confidence }}

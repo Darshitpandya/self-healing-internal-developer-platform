@@ -1,0 +1,130 @@
+[
+  {
+    "identifier": "payments-svc",
+    "title": "Payments Service",
+    "properties": {
+      "team_owner": "team-payments",
+      "ownership_source": "codeowners",
+      "ownership_confidence": "high",
+      "template_version": "v1.2",
+      "latest_template_version": "v1.5",
+      "template_versions_behind": 3,
+      "template_missed_security_patch": true,
+      "secret_health_status": "healthy",
+      "secret_days_to_expiry": null,
+      "service_tier": "critical"
+    }
+  },
+  {
+    "identifier": "auth-svc",
+    "title": "Auth Service",
+    "properties": {
+      "team_owner": "team-identity",
+      "ownership_source": "codeowners",
+      "ownership_confidence": "high",
+      "template_version": "v1.5",
+      "latest_template_version": "v1.5",
+      "template_versions_behind": 0,
+      "template_missed_security_patch": false,
+      "secret_health_status": "healthy",
+      "secret_days_to_expiry": null,
+      "service_tier": "critical"
+    }
+  },
+  {
+    "identifier": "notifications-svc",
+    "title": "Notifications Service",
+    "properties": {
+      "team_owner": null,
+      "ownership_source": "unassigned",
+      "ownership_confidence": "low",
+      "template_version": "v1.3",
+      "latest_template_version": "v1.5",
+      "template_versions_behind": 2,
+      "template_missed_security_patch": true,
+      "secret_health_status": "expiring_soon",
+      "secret_days_to_expiry": 7,
+      "service_tier": "standard"
+    }
+  },
+  {
+    "identifier": "orders-svc",
+    "title": "Orders Service",
+    "properties": {
+      "team_owner": "team-commerce",
+      "ownership_source": "codeowners",
+      "ownership_confidence": "high",
+      "template_version": "v1.4",
+      "latest_template_version": "v1.5",
+      "template_versions_behind": 1,
+      "template_missed_security_patch": false,
+      "secret_health_status": "no_rotation",
+      "secret_days_to_expiry": 3,
+      "service_tier": "standard"
+    }
+  },
+  {
+    "identifier": "users-svc",
+    "title": "Users Service",
+    "properties": {
+      "team_owner": "team-beta",
+      "ownership_source": "pagerduty:team-identity",
+      "ownership_confidence": "conflict",
+      "template_version": "v1.1",
+      "latest_template_version": "v1.5",
+      "template_versions_behind": 4,
+      "template_missed_security_patch": true,
+      "secret_health_status": "healthy",
+      "secret_days_to_expiry": null,
+      "service_tier": "standard"
+    }
+  },
+  {
+    "identifier": "catalog-svc",
+    "title": "Catalog Service",
+    "properties": {
+      "team_owner": "team-commerce",
+      "ownership_source": "codeowners",
+      "ownership_confidence": "high",
+      "template_version": "v1.5",
+      "latest_template_version": "v1.5",
+      "template_versions_behind": 0,
+      "template_missed_security_patch": false,
+      "secret_health_status": "healthy",
+      "secret_days_to_expiry": null,
+      "service_tier": "standard"
+    }
+  },
+  {
+    "identifier": "search-svc",
+    "title": "Search Service",
+    "properties": {
+      "team_owner": "team-data",
+      "ownership_source": "codeowners",
+      "ownership_confidence": "high",
+      "template_version": "v1.5",
+      "latest_template_version": "v1.5",
+      "template_versions_behind": 0,
+      "template_missed_security_patch": false,
+      "secret_health_status": "healthy",
+      "secret_days_to_expiry": null,
+      "service_tier": "standard"
+    }
+  },
+  {
+    "identifier": "analytics-svc",
+    "title": "Analytics Service",
+    "properties": {
+      "team_owner": "team-alpha",
+      "ownership_source": "dissolved",
+      "ownership_confidence": "low",
+      "template_version": "v1.2",
+      "latest_template_version": "v1.5",
+      "template_versions_behind": 3,
+      "template_missed_security_patch": true,
+      "secret_health_status": "expiring_soon",
+      "secret_days_to_expiry": 12,
+      "service_tier": "standard"
+    }
+  }
+]

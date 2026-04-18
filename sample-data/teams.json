@@ -1,0 +1,8 @@
+{
+  "team-payments": { "status": "active" },
+  "team-identity": { "status": "active" },
+  "team-commerce": { "status": "active" },
+  "team-data": { "status": "active" },
+  "team-alpha": { "status": "dissolved" },
+  "team-beta": { "status": "active" }
+}

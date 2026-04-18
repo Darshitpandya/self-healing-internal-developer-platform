@@ -1,0 +1,29 @@
+{
+  "identifier": "golden-path-compliance",
+  "title": "Golden Path Compliance",
+  "blueprint": "service",
+  "rules": [
+    {
+      "identifier": "on-latest-template",
+      "title": "On Latest Template Version",
+      "level": "Gold",
+      "query": {
+        "combinator": "and",
+        "conditions": [
+          { "property": "template_versions_behind", "operator": "=", "value": 0 }
+        ]
+      }
+    },
+    {
+      "identifier": "no-missed-security",
+      "title": "No Missed Security Patches",
+      "level": "Silver",
+      "query": {
+        "combinator": "and",
+        "conditions": [
+          { "property": "template_missed_security_patch", "operator": "=", "value": false }
+        ]
+      }
+    }
+  ]
+}
