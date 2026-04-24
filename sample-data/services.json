@@ -68,7 +68,7 @@
     "title": "Users Service",
     "properties": {
       "team_owner": "team-beta",
-      "ownership_source": "pagerduty:team-identity",
+      "ownership_source": "pagerduty",
       "ownership_confidence": "conflict",
       "template_version": "v1.1",
       "latest_template_version": "v1.5",
