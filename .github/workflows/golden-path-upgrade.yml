@@ -31,19 +31,24 @@ jobs:
           chmod +x opa
           sudo mv opa /usr/local/bin/
 
+      - name: Run OPA policy tests
+        run: opa test policies/
+
       - name: Determine inputs
         id: inputs
         run: |
           SVC="${{ github.event.client_payload.service_identifier || github.event.inputs.service_identifier }}"
           CURRENT="${{ github.event.client_payload.current_version || github.event.inputs.current_version }}"
           TARGET="${{ github.event.client_payload.target_version || github.event.inputs.target_version }}"
+          TIER="${{ github.event.client_payload.service_tier || github.event.inputs.service_tier || 'standard' }}"
           echo "service=$SVC" >> $GITHUB_OUTPUT
           echo "current=$CURRENT" >> $GITHUB_OUTPUT
           echo "target=$TARGET" >> $GITHUB_OUTPUT
+          echo "tier=$TIER" >> $GITHUB_OUTPUT
 
-          # Calculate versions behind
-          CURRENT_NUM=$(echo "$CURRENT" | sed 's/v1\.//')
-          TARGET_NUM=$(echo "$TARGET" | sed 's/v1\.//')
+          # Extract trailing minor number — handles any vMAJOR.MINOR format
+          CURRENT_NUM=$(echo "$CURRENT" | grep -oE '[0-9]+$')
+          TARGET_NUM=$(echo "$TARGET" | grep -oE '[0-9]+$')
           BEHIND=$((TARGET_NUM - CURRENT_NUM))
           echo "behind=$BEHIND" >> $GITHUB_OUTPUT
 
@@ -60,10 +65,14 @@ jobs:
         run: |
           INPUT=$(jq -n \
             --arg action "golden_path_upgrade" \
-            --arg tier "standard" \
+            --arg tier "${{ steps.inputs.outputs.tier }}" \
             --argjson behind ${{ steps.inputs.outputs.behind }} \
             '{action: $action, service_tier: $tier, versions_behind: $behind}')
           RESULT=$(echo "$INPUT" | opa eval -d policies/selfheal.rego -i /dev/stdin "data.selfheal.allow" --format raw)
+          if [ -z "$RESULT" ]; then
+            echo "OPA returned empty result — policy evaluation failed"
+            exit 1
+          fi
           echo "allowed=$RESULT" >> $GITHUB_OUTPUT
           echo "OPA decision: $RESULT"
 
