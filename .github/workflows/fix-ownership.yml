@@ -26,11 +26,16 @@ jobs:
           chmod +x opa
           sudo mv opa /usr/local/bin/
 
+      - name: Run OPA policy tests
+        run: opa test policies/
+
       - name: Determine service
         id: svc
         run: |
           SVC="${{ github.event.client_payload.service_identifier || github.event.inputs.service_identifier }}"
+          TIER="${{ github.event.client_payload.service_tier || github.event.inputs.service_tier || 'standard' }}"
           echo "service=$SVC" >> $GITHUB_OUTPUT
+          echo "tier=$TIER" >> $GITHUB_OUTPUT
 
       - name: Load ownership signals
         id: signals
@@ -61,9 +66,13 @@ jobs:
           INPUT=$(jq -n \
             --arg action "fix_ownership" \
             --arg confidence "${{ steps.signals.outputs.confidence }}" \
-            --arg tier "standard" \
+            --arg tier "${{ steps.svc.outputs.tier }}" \
             '{action: $action, ownership_confidence: $confidence, service_tier: $tier}')
           RESULT=$(echo "$INPUT" | opa eval -d policies/selfheal.rego -i /dev/stdin "data.selfheal.allow" --format raw)
+          if [ -z "$RESULT" ]; then
+            echo "OPA returned empty result — policy evaluation failed"
+            exit 1
+          fi
           echo "allowed=$RESULT" >> $GITHUB_OUTPUT
           echo "OPA decision: $RESULT"
 

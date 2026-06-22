@@ -11,7 +11,8 @@
   },
   "userInputs": {
     "properties": {
-      "service_identifier": { "type": "string", "title": "Service Identifier" }
+      "service_identifier": { "type": "string", "title": "Service Identifier" },
+      "service_tier": { "type": "string", "title": "Service Tier", "enum": ["standard", "critical"], "default": "standard" }
     }
   }
 }

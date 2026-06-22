@@ -13,7 +13,8 @@
     "properties": {
       "service_identifier": { "type": "string", "title": "Service Identifier" },
       "current_version": { "type": "string", "title": "Current Version" },
-      "target_version": { "type": "string", "title": "Target Version" }
+      "target_version": { "type": "string", "title": "Target Version" },
+      "service_tier": { "type": "string", "title": "Service Tier", "enum": ["standard", "critical"], "default": "standard" }
     }
   }
 }
